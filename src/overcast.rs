@@ -31,7 +31,7 @@ impl OvercastClient {
             .text()?
             .contains(&"Sorry, there was a problem looking up your Overcast account".to_string())
         {
-            return Err("unable to authenticate with Overcast")?;
+            return Err("unable to authenticate with Overcast".into());
         }
         Ok(())
     }
@@ -89,7 +89,7 @@ impl OvercastClient {
                 id: id.unwrap().to_string(),
                 title: title.unwrap().to_string(),
                 subscribed: feed.attribute("subscribed") == Some("1"),
-                episodes: episodes,
+                episodes,
                 feed_url: feed.attribute("xmlUrl").map(|s| s.to_string()),
                 html_url: feed.attribute("htmlUrl").map(|s| s.to_string()),
             });

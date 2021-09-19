@@ -35,10 +35,7 @@ pub fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>
 }
 
 // Upserts a list of feeds  and episodes into the database.
-pub fn upsert_feeds(
-    conn: &Connection,
-    feeds: &Vec<Feed>,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn upsert_feeds(conn: &Connection, feeds: &[Feed]) -> Result<(), Box<dyn std::error::Error>> {
     for feed in feeds {
         conn.execute(
             "INSERT OR REPLACE INTO feeds(id, title, subscribed, feedUrl, htmlUrl)
