@@ -1,8 +1,12 @@
 [package]
 name = "overcast-to-sqlite"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Ben Congdon <ben@congdon.dev>"]
 edition = "2018"
+categories = ["command-line-utility"]
+license = "MIT"
+repository = "https://github.com/bcongdon/overcast-to-sqlite"
+description = "Download your Overcast listening data to SQLite"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,3 +16,6 @@ roxmltree = "0.14.1"
 rusqlite = { version = "0.25.3", features = ["chrono"] }
 chrono = "0.4.19"
 clap = "3.0.0-beta.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+rpassword = "5.0"

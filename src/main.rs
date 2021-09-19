@@ -2,6 +2,7 @@ use chrono::{DateTime, NaiveDateTime};
 use clap::{AppSettings, Clap};
 use reqwest::blocking::Client;
 use rusqlite::{params, Connection};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Clap)]
@@ -10,20 +11,63 @@ use std::collections::HashMap;
 struct Opts {
     /// Overcast username.
     #[clap(short, long)]
-    username: String,
+    username: Option<String>,
     /// Overcast password.
     #[clap(short, long)]
-    password: String,
+    password: Option<String>,
+    /// Storage location for Overcast credentials.
+    #[clap(short, long, default_value = "auth.json")]
+    auth_file: String,
+    #[clap(subcommand)]
+    subcmd: SubCommand,
+}
+
+#[derive(Clap)]
+enum SubCommand {
+    #[clap(about = "Authenticate with Overcast")]
+    Auth(Auth),
+    #[clap(about = "Save Overcast feeds/episodes to sqlite")]
+    Archive(Archive),
+}
+
+#[derive(Clap)]
+struct Auth {}
+
+#[derive(Clap)]
+struct Archive {
     /// The sqlite database path to store to.
     db_path: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct AuthFile {
+    #[serde(rename = "overcast_username")]
+    username: String,
+    #[serde(rename = "overcast_password")]
+    password: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts = Opts::parse();
     let client = Client::builder().cookie_store(true).build().unwrap();
 
+    match opts.subcmd {
+        SubCommand::Auth(_) => auth(&client, &opts),
+        SubCommand::Archive(Archive { ref db_path }) => archive(client, &opts, db_path.clone()),
+    }
+}
+
+fn archive(client: Client, opts: &Opts, db_path: String) -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("[1/3] Authenticating with Overcast...");
-    authenticate(&client, &opts.username, &opts.password)?;
+    if let (Some(username), Some(password)) = (opts.username.clone(), opts.password.clone()) {
+        authenticate(&client, &username, &password)?;
+    } else if std::path::Path::new(&opts.auth_file).exists() {
+        let auth_file = std::fs::File::open(opts.auth_file.clone())?;
+        let auth: AuthFile = serde_json::from_reader(auth_file)?;
+        authenticate(&client, &auth.username, &auth.password)?;
+    } else {
+        return Err("No credentials provided. Run the `auth` subcommand first, or provide credentials with --username and --password.".into());
+    }
     eprintln!("[2/3] Fetching podcasts...");
     let podcasts = get_podcasts(&client)?;
     eprintln!(
@@ -31,11 +75,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         podcasts.len(),
         podcasts.iter().map(|p| p.episodes.len()).sum::<usize>()
     );
-
     eprintln!("[3/3] Writing podcasts to sqlite db...");
-    let conn = Connection::open(&opts.db_path)?;
+    let conn = Connection::open(&db_path)?;
     create_tables(&conn)?;
     upsert_feeds(&conn, &podcasts)?;
+    Ok(())
+}
+
+fn auth(client: &Client, opts: &Opts) -> Result<(), Box<dyn std::error::Error>> {
+    let credentials =
+        // Use credentials from CLI flags
+        if let (Some(username), Some(password)) = (opts.username.clone(), opts.password.clone()) {
+            AuthFile { username, password }
+        }
+        // Prompt for credentials
+        else {
+            let username = rpassword::prompt_password_stdout("Overcast username: ")?;
+            let password = rpassword::prompt_password_stdout("Overcast password: ")?;
+            AuthFile { username, password }
+        };
+    // TODO: Patch with existing file if one already exists.
+    let mut file = std::fs::File::create(&opts.auth_file)?;
+    serde_json::to_writer_pretty(&mut file, &credentials)?;
+    authenticate(&client, &credentials.username, &credentials.password)?;
+    eprintln!("Authenticated successfully.");
     Ok(())
 }
 
