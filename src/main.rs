@@ -7,7 +7,7 @@ mod sqlite;
 use overcast::OvercastClient;
 
 #[derive(Clap)]
-#[clap(version = "1.0", author = "Ben Congdon <ben@congdon.dev>")]
+#[clap(version = "0.2.1", author = "Ben Congdon <ben@congdon.dev>")]
 #[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
     /// Overcast username.
@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = OvercastClient::new();
 
     match opts.subcmd {
-        SubCommand::Auth(_) => auth_cmd(&client, &opts),
+        SubCommand::Auth(_) => auth(&client, &opts),
         SubCommand::Archive(Archive { ref db_path }) => archive_cmd(client, &opts, db_path.clone()),
     }
 }
@@ -87,7 +87,7 @@ fn archive_cmd(
     Ok(())
 }
 
-fn auth_cmd(client: &OvercastClient, opts: &Opts) -> Result<(), Box<dyn std::error::Error>> {
+fn auth(client: &OvercastClient, opts: &Opts) -> Result<(), Box<dyn std::error::Error>> {
     let credentials =
         // Use credentials from CLI flags
         if let (Some(username), Some(password)) = (opts.username.clone(), opts.password.clone()) {
