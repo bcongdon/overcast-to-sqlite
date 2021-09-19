@@ -1,9 +1,9 @@
 [package]
 name = "overcast-to-sqlite"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Ben Congdon <ben@congdon.dev>"]
 edition = "2018"
-categories = ["ccommand-line-utilities"]
+categories = ["command-line-utilities"]
 license = "MIT"
 repository = "https://github.com/bcongdon/overcast-to-sqlite"
 description = "Download your Overcast listening data to SQLite"

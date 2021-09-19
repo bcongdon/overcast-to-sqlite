@@ -7,7 +7,7 @@ mod sqlite;
 use overcast::OvercastClient;
 
 #[derive(Clap)]
-#[clap(version = "0.2.1", author = "Ben Congdon <ben@congdon.dev>")]
+#[clap(version = "0.2.2", author = "Ben Congdon <ben@congdon.dev>")]
 #[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
     /// Overcast username.
