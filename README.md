@@ -1,6 +1,6 @@
 # overcast-to-sqlite
 
-![crates.io](https://img.shields.io/crates/v/wayback-archiver.svg)
+[![crates.io](https://img.shields.io/crates/v/overcast-to-sqlite.svg)](https://crates.io/crates/overcast-to-sqlite)
 
 Download your [Overcast](http://overcast.fm) listening history to sqlite. Supports saving podcast feeds and individual episodes.
 
